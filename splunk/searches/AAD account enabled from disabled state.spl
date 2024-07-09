@@ -1,0 +1,8 @@
+```
+This rule detects when an account is enabled in Azure AD, which may be indicative of lateral movement by an attacker by using pre-existing accounts to avoid detection.
+This rule can be refined by excluding known accounts that perform this activity automatically, such as the Azure AD Connect service account.
+```
+
+index=azure sourcetype=azure:aad:audit activityDisplayName="Enable account"
+| rename initiatedBy.user.userPrincipalName as initiatedBy_user targetResources{}.userPrincipalName as user
+| table _time id result operationType activityDisplayName initiatedBy_user user 

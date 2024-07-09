@@ -1,0 +1,8 @@
+```
+This rule looks for new consent actions to Service Principals that have mail related permissions. This could be an indication of a malicious actor attempting to exfiltrate mail data via automated means.
+This rule can be further refined by adding additional parameters to the search such as filtering by specific users or domains, or by excluding known legitimate service principals.
+```
+
+index=azure sourcetype=azure:aad:audit activityDisplayName IN ("Consent to application", "Add app role assignment grant to user.") result=success (targetResources{}.modifiedProperties{}.newValue IN ("*MailboxSettings.*", "*Mail.Read*", "*Mail.Read.Shared*", "*Mail.ReadBasic*", "*Mail.ReadBasic.Shared*", "*Mail.ReadWrite*", "*Mail.ReadWrite.Shared*", "*Mail.Send*", "*Maik.Send.Shared*")) (initiatedBy.user.userPrincipalName!="")
+| rename initiatedBy.user.userPrincipalName as "callerUpn", src_ip as "callerIpAddress"
+| table _time description object_category object object_id callerUpn callerIpAddress correlationId targetResources{}.modifiedProperties{}.displayName targetResources{}.modifiedProperties{}.oldValue targetResources{}.modifiedProperties{}.newValue

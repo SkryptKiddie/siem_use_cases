@@ -1,0 +1,7 @@
+DeviceTvmSecureConfigurationAssessment 
+| where (ConfigurationCategory == "Security controls" and ConfigurationSubcategory == "Bitlocker") and (ConfigurationId == "scid-2090") // SCID-2090 = Encrypt all BitLocker-supported drives
+| where Timestamp > ago(30d)
+| sort by Timestamp desc
+| distinct DeviceName, IsCompliant, ConfigurationId
+| extend ComplianceStatus = case(IsCompliant == 1, "Compliant", IsCompliant == 0, "NonCompliant", IsCompliant == "", "NotApplicable", "Unknown")
+| summarize hosts=make_list(DeviceName) by ComplianceStatus

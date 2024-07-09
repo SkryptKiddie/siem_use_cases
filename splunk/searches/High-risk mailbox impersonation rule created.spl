@@ -1,0 +1,9 @@
+```
+This rule looks for high-risk mailbox impersonation actions in Exchange Online. This could be an indication of a malicious actor attempting to gain access to other mailboxes in order to exfiltrate emails.
+This rule can be further refined by adding additional parameters to the search such as filtering by specific users or domains, or by excluding known good users (i.e. IT admins, HR staff, trusted source IP addresses).
+```
+
+(index=azure) (sourcetype=o365:management:activity) Workload=Exchange ((Operation IN ("Add-MailboxPermission", "Add-RecipientPermission", "Add-MailboxFolderPermission", "Set-MailboxFolderPermission")) AND (AccessRights="FullAccess") AND (UserType IN ("1", "2")))
+| rex mode=sed field=ClientIP "s/\:\d.*//g"
+| rename "Parameters{}.Name" as "parameterOption", "Parameters{}.Value" as "parameterValue"
+| table _time status app user activityDisplayName action parameterOption parameterValue ClientIP RequestId

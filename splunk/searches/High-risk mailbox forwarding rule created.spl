@@ -1,0 +1,9 @@
+```
+This rule looks for new inbox rules created in Exchange Online that forwards inbound email. This could be an indication of a malicious actor attempting to exfiltrate mail data via automated means.
+This can be further refined by adding additional parameters to the search such as filtering by specific users or domains, or by excluding known good users (i.e. IT admins, HR staff, trusted source IP addresses).
+```
+
+(index=azure) (sourcetype=o365:management:activity) Workload=Exchange ((Operation IN ("New-InboxRule", "Set-InboxRule", "Set-TransportRule")) AND (Parameters{}.Name IN ("ForwardTo", "RedirectMessageTo", "DeliverToMailboxAndForward", "BlindCopyTo")))
+| rex mode=sed field=ClientIP "s/\:\d.*//g"
+| rename "Parameters{}.Name" as "parameterOption", "Parameters{}.Value" as "parameterValue"
+| table _time status app user activityDisplayName action parameterOption parameterValue ClientIP RequestId

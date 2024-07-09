@@ -1,0 +1,4 @@
+union SigninLogs, AADNonInteractiveUserSignInLogs
+| extend displayName_ = tostring(parse_json(DeviceDetail_string).displayName), deviceId_ = tostring(parse_json(DeviceDetail_string).deviceId), trustType_ = tostring(parse_json(DeviceDetail_string).trustType)
+| where (deviceId_ != "") and (ResultType == "50057") and (trustType_ != "Azure AD registered") // Searching for blank device ID fields, error code 50057 for disabled account and excluding BYOD registered devices
+| summarize count() by bin(TimeGenerated, 1h), Category, UserPrincipalName, AppDisplayName, IPAddress, UserAgent, ResultType, ResultDescription, displayName_, trustType_
