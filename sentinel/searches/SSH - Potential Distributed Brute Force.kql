@@ -1,0 +1,8 @@
+let threshold = 15; // define the threshold of hosts to be accessed before the analytic should fire
+Syslog
+| where (Facility == "auth" and ProcessName == "sshd") and SyslogMessage startswith "Invalid user"
+| parse kind=relaxed SyslogMessage with * "Invalid user " UserName " from " IpAddress " port " *
+| summarize dcount(HostName), make_set(HostName), make_set(UserName), min(TimeGenerated), max(TimeGenerated) by IpAddress
+| extend TimeDiff = (max_TimeGenerated - min_TimeGenerated)
+| project-rename StartTime=min_TimeGenerated, EndTime=max_TimeGenerated, HostList=set_HostName, UserList=set_UserName, HostCount=dcount_HostName
+| where (HostCount > threshold) and isnotempty(IpAddress)
